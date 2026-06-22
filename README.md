@@ -45,7 +45,7 @@ dbt build --target snowflake --full-refresh
 `--full-refresh` rebuilds the incremental models (`denormalized_data`,
 `denormalized_data_merge`) from scratch.
 
-### 4. Find the run in Snowflake by its QUERY_TAG
+### 4. Find the run by its QUERY_TAG
 
 Every run prints its tag at the start (an `on-run-start` hook), and the same tag
 is set as the session `QUERY_TAG` on every query the run issues:
@@ -54,8 +54,10 @@ is set as the session `QUERY_TAG` on every query the run issues:
 === Snowflake QUERY_TAG for this run: <invocation_id> ===
 ```
 
-Copy that `invocation_id`, then in **Snowsight → Activity → Query History**
-filter by Query Tag to see all SQL from the run:
+Copy that `invocation_id`. In the web UI go to **Monitoring → Query History**,
+then filter by **Query Tag** and paste the tag to view all SQL from the run.
+
+Or query it inline using the invocation-id:
 
 ```sql
 select query_text, start_time, execution_status
@@ -75,8 +77,8 @@ dbt build --target snowflake
 Now the incremental models run in `merge` mode: `denormalized_data_merge` upserts
 on its `unique_key` (`payment_id`) — matched rows are UPDATED in place and new
 rows INSERTED, no truncate needed. Grab the new `invocation_id` and inspect its
-queries in Snowsight to confirm the `MERGE` statement (vs. the `CREATE OR REPLACE`
-from the full-refresh run).
+queries (same Query History / query-tag flow as step 4) to confirm the `MERGE`
+statement (vs. the `CREATE OR REPLACE` from the full-refresh run).
 
 ### Browse the docs (optional)
 
