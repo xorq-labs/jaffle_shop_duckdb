@@ -1,0 +1,3 @@
+# Placeholder so the .snowflake/ directory exists.
+# Put local Snowflake secrets here (e.g. key-pair .p8 files) — the directory
+# is gitignored, so nothing inside it except this .keep is tracked.

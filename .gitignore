@@ -12,3 +12,7 @@ venv/
 env/
 **/*.duckdb
 **/*.duckdb.wal
+.env
+*.env
+*.p8
+.snowflake/

@@ -19,6 +19,11 @@ clean-targets:
 
 require-dbt-version: [">=1.11.0", "<2.0.0"]
 
+# Echo the Snowflake QUERY_TAG (and dbt invocation id) at the start of every run
+# so it can be copied into Snowsight > Query History to find all SQL from the run.
+on-run-start:
+  - "{{ log('=== Snowflake QUERY_TAG for this run: ' ~ env_var('DBT_QUERY_TAG', invocation_id) ~ ' ===', info=true) }}"
+
 seeds: 
   +docs:
     node_color: '#cd7f32'

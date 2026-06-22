@@ -6,3 +6,21 @@ jaffle_shop:
       type: duckdb
       path: 'jaffle_shop.duckdb'
       threads: 24
+
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'JAFFLE_SHOP') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'PUBLIC') }}"
+      # key-pair auth: SNOWFLAKE_PRIVATE_KEY_PATH points to a PEM .p8 file
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+      # session-level QUERY_TAG: applied to EVERY query on the connection (models,
+      # seeds, tests, introspective/catalog queries). Defaults to dbt's own
+      # per-run UUID (invocation_id) — no shell env var needed. Override with
+      # DBT_QUERY_TAG if you want a custom tag.
+      query_tag: "{{ env_var('DBT_QUERY_TAG', invocation_id) }}"
+      threads: 8
