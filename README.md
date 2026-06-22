@@ -14,7 +14,6 @@ uv pip install -r requirements.txt
 
 cp .env.example .env                  # snowflake target + key-pair auth, all env vars
 set -a && source .env && set +a
-export SNOWFLAKE_DATABASE=JAFFLE_SHOP SNOWFLAKE_SCHEMA=PUBLIC
 
 dbt seed  --target snowflake
 dbt build --target snowflake --full-refresh   # CREATE OR REPLACE
@@ -26,7 +25,7 @@ Find it via **Monitoring → Query History → Query Tag**, or inline:
 
 ```sql
 select query_text, start_time, execution_status
-from table(information_schema.query_history())
+from table(jaffle_shop.information_schema.query_history())
 where query_tag = '<invocation_id>' order by start_time;
 ```
 
