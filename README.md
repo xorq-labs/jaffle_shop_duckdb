@@ -6,86 +6,34 @@
 
 ## Snowflake incremental walkthrough (xorq internal)
 
-A quick end-to-end loop on Snowflake: build everything with a full refresh, find
-the run in Snowsight by its `QUERY_TAG`, then re-run without `--full-refresh` to
-watch the incremental `merge` upsert in action.
-
-### 1. Set up the environment
+Full-refresh build → find the run by `QUERY_TAG` → re-run to watch the `merge` upsert.
 
 ```bash
-uv venv --python 3.13 venv
-source venv/bin/activate
+uv venv --python 3.13 venv && source venv/bin/activate
 uv pip install -r requirements.txt
-```
 
-After activating, `dbt` is on your `PATH` — the commands below use it directly.
-
-### 2. Configure Snowflake credentials
-
-Connection settings live in `profiles.yml` under the `snowflake` target and are
-all read from environment variables (key-pair auth). Copy the template, fill it
-in, and source it:
-
-```bash
-cp .env.example .env
-# edit .env with your account, user, role, warehouse, and key-pair path
+cp .env.example .env                  # snowflake target + key-pair auth, all env vars
 set -a && source .env && set +a
-```
 
-`.env`, `*.env`, `*.p8`, and `.snowflake/` are gitignored — keep your private
-key (e.g. under `.snowflake/`) and real values out of version control.
-
-### 3. Seed, then build everything with a full refresh
-
-```bash
 dbt seed  --target snowflake
-dbt build --target snowflake --full-refresh
+dbt build --target snowflake --full-refresh   # CREATE OR REPLACE
+dbt build --target snowflake                  # incremental merge upsert
 ```
 
-`--full-refresh` rebuilds the incremental models (`denormalized_data`,
-`denormalized_data_merge`) from scratch.
-
-### 4. Find the run by its QUERY_TAG
-
-Every run prints its tag at the start (an `on-run-start` hook), and the same tag
-is set as the session `QUERY_TAG` on every query the run issues:
-
-```
-=== Snowflake QUERY_TAG for this run: <invocation_id> ===
-```
-
-Copy that `invocation_id`. In the web UI go to **Monitoring → Query History**,
-then filter by **Query Tag** and paste the tag to view all SQL from the run.
-
-Or query it inline using the invocation-id:
+Each run prints `=== Snowflake QUERY_TAG for this run: <invocation_id> ===`.
+Find it via **Monitoring → Query History → Query Tag**, or inline:
 
 ```sql
 select query_text, start_time, execution_status
 from table(information_schema.query_history())
-where query_tag = '<invocation_id>'
-order by start_time;
+where query_tag = '<invocation_id>' order by start_time;
 ```
 
-(Set a custom tag instead with `DBT_QUERY_TAG` if you prefer.)
+The second build merges `denormalized_data_merge` on `payment_id` (UPDATE matched, INSERT new) —
+compare its `MERGE` to the full-refresh `CREATE OR REPLACE`.
 
-### 5. Re-run without `--full-refresh` to see the merge
-
-```bash
-dbt build --target snowflake
-```
-
-Now the incremental models run in `merge` mode: `denormalized_data_merge` upserts
-on its `unique_key` (`payment_id`) — matched rows are UPDATED in place and new
-rows INSERTED, no truncate needed. Grab the new `invocation_id` and inspect its
-queries (same Query History / query-tag flow as step 4) to confirm the `MERGE`
-statement (vs. the `CREATE OR REPLACE` from the full-refresh run).
-
-### Browse the docs (optional)
-
-```bash
-dbt docs generate --target snowflake   # already generated — re-run to refresh
-dbt docs serve --port 8080
-```
+`.env`, `*.env`, `*.p8`, `.snowflake/` are gitignored. Override the tag with `DBT_QUERY_TAG`.
+Docs: `dbt docs generate --target snowflake && dbt docs serve --port 8080`.
 
 ---
 
