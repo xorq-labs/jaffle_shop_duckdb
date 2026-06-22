@@ -33,7 +33,19 @@ The second build merges `denormalized_data_merge` on `payment_id` (UPDATE matche
 compare its `MERGE` to the full-refresh `CREATE OR REPLACE`.
 
 `.env`, `*.env`, `*.p8`, `.snowflake/` are gitignored. Override the tag with `DBT_QUERY_TAG`.
-Docs: `dbt docs generate --target snowflake && dbt docs serve --port 8080`.
+
+Docs: 
+look at dbt auto generated docs
+
+```bash 
+dbt docs generate --target snowflake && dbt docs serve --port 8080
+```
+to locally look at compiled and executed sql look at. 
+
+```bash
+target/compiled
+target/run
+```
 
 ---
 
