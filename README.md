@@ -14,12 +14,13 @@ uv pip install -r requirements.txt
 
 cp .env.example .env                  # snowflake target + key-pair auth, all env vars
 set -a && source .env && set +a
+export SNOWFLAKE_DATABASE=JAFFLE_SHOP SNOWFLAKE_SCHEMA=PUBLIC
 
 dbt seed  --target snowflake
 dbt build --target snowflake --full-refresh   # CREATE OR REPLACE
 dbt build --target snowflake                  # incremental merge upsert
 ```
-
+## Get all session queries 
 Each run prints `=== Snowflake QUERY_TAG for this run: <invocation_id> ===`.
 Find it via **Monitoring → Query History → Query Tag**, or inline:
 
